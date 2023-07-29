@@ -3,7 +3,8 @@ let express = require("express"),
     fileUpload = require("express-fileupload"),
     bcryptjs = require('bcryptjs'),
     jwt = require("jsonwebtoken"),
-    { readFileSync } = require("fs");
+    { readFileSync, readdirSync } = require("fs");
+const path = require("path");
 
 /**
  * 
@@ -254,7 +255,24 @@ function resolvePath(path) {
     return p.resolve(path);
 }
 
+function getAdScripts() {
+    // console.log(__dirname)
+    // console.log(path.resolve("AdScripts"))
+    return readdirSync(path.resolve("AdScripts"));
+}
+
+function sendAdScript(res, scriptName) {
+    let scripts = getAdScripts();
+    for (let i = 0; i < scripts.length; i++) {
+        if (scriptName === scripts[i])
+            return res.sendFile(path.join(path.resolve("AdScripts"), scriptName));
+    }
+    return false;
+}
+
 module.exports = {
+    sendAdScript,
+    getAdScripts,
     resolvePath,
     isValidCategory,
     getCors,

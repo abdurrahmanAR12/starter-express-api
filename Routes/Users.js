@@ -30,8 +30,11 @@ router.post("/new", [
 
     let objCreate = { Name: encodeUtf8(req.body.Name), Gender: req.body.Gender, Age: req.body.age, Email: encodeUtf8(req.body.Email), Password: createHashSalted(req.body.Password) };
     let newUser = await (User.create(objCreate)).save().then(res => res).catch(rej_ => false);
-    if (newUser)
-        return sendRespnonseJsonSucess(res, "Success, Account created");
+    if (newUser) {
+        let secret = getEnvironmentVariables().jwt,
+            token = signJwt({ user: { id: al.id, Password: al.Password } }, secret);
+        return sendRespnonseJsonSucess(res, { msg: "Success, Account created", token });
+    }
     return sendRespnonseJson400(res, "Account creation failed, Please try again later");
 });
 
@@ -42,10 +45,10 @@ router.post("/login", [
     // console.log(req.body)
     let errors = validationResult(req);
     if (!errors.isEmpty())
-        return sendRespnonseJsonSucess(res, errors.array()[0].msg);
+        return sendRespnonseJson400(res, errors.array()[0].msg);
     let al = User.getOne({ Email: encodeUtf8(req.body.Email) });
     if (!al)
-        return sendRespnonseJsonSucess(res, "Sorry, Email or password is not valid");
+        return sendRespnonseJson400(res, "Sorry, Email or password is not valid");
     let comparison = comparePassword(req.body.Password, al.Password);
     if (!comparison)
         return sendRespnonseJson400(res, "Sorry, Email or password is not valid");

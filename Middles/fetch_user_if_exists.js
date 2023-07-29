@@ -3,8 +3,10 @@ let { getEnvironmentVariables, verifyPayload, sendRespnonseJson400 } = require("
     { jwt } = getEnvironmentVariables()
 
 async function fetch_user(req, res, next) {
-    try {
+    // try {
+        // console.log(req.headers)
         let token = req.header("token");
+        // console.log(token)
         if (!token)
             return next();
         // return sendRespnonseJson400(res, "Something went wrong");
@@ -23,9 +25,9 @@ async function fetch_user(req, res, next) {
             return sendRespnonseJson400(res, "Something went wrong");
         req.user = { id };
         next();
-    } catch (error) {
-        return sendRespnonseJson400(res, "Something went wrong");
-    }
+    // } catch (error) {
+    //     return sendRespnonseJson400(res, "Something went wrong");
+    // }
 }
 
 module.exports.FetchUserIfExists = fetch_user;

@@ -5,6 +5,9 @@ let { createRouter, getFileUpload, getValiadator, sendRespnonseJson400, getApiKe
     { FetchUserIfExists } = require("../Middles/fetch_user_if_exists"),
     pixabayApi = require("pixabay-api")
 
+
+// console.log(Activity.getOne({}))
+
 router.use(getFileUpload());
 
 module.exports.Images = router;
@@ -18,7 +21,7 @@ router.post("/search", FetchUserIfExists, [
 ], async (req, res) => {
     let userActivity, { key, page } = req.body;
     page = parseInt(page);
-    // console.log(req.body)
+
     if (isNaN(page))
         return sendRespnonseJson400(res, "`Page` param must starts from 1 and it must be a number");
     if (page === 0)
@@ -26,6 +29,7 @@ router.post("/search", FetchUserIfExists, [
     if ((!validateResponseGroup(req.body.response_group)) || (!validateOrder(req.body.order)) || (!isValidCategory(req.body.category)))
         return sendRespnonseJson400(res, "Something went wrong");
     // if (req.user) {
+    //     // console.log("user is present")
     //     userActivity = Activity.getOne({ user: req.user.id });
     //     if (!userActivity) {
     //         let newAc = Activity.create({ searchKeys: [key], user: req.user.id, categories: [req.body.categorie] });
@@ -38,7 +42,9 @@ router.post("/search", FetchUserIfExists, [
     // }
     let options = { ...req.body, per_page: 4 },
         results = await getResults(key, options);
-    return res.json(results);
+    if (!results)
+        return sendRespnonseJson400(res, results);
+    return sendRespnonseJsonSucess(res, results);
 });
 
 router.get("/get/:id", param("id", "id must be valid").isJWT(), async (req, res) => {
@@ -61,6 +67,7 @@ router.get("/category/:category&:page", param("page", "Page must starts from 1 a
     if (!isValidCategory(req.params.category) || req.params.page === 0)
         return sendRespnonseJson400(res, "Something went wrong");
     let key = req.params.category;
+    // console.log(req.headers)
     if (req.user) {
         // console.log("at ac get")
         let ac = Activity.getOne({ user: req.user.id });
@@ -81,29 +88,14 @@ router.get("/category/:category&:page", param("page", "Page must starts from 1 a
         response_group: "image_details"
     }, results = await getResults(key, options);
     // console.log(results)
-    return res.json(results);
+    if (!results)
+        return sendRespnonseJson400(res, results);
+    return sendRespnonseJsonSucess(res, results);
 });
 
 async function getImage(url) {
-    // console.log(url)
     if (!URL.canParse(url))
         return false;
-    // let data = await fetch(url).then(res => {
-    //     return res.arrayBuffer();
-    // }).then(blob => {
-    //     return blob
-    //     // return blob.arrayBuffer()
-    // })
-    // let data = await urlToBuffer(url).then(img => {
-    //     // require("fs").writeFileSync(`tmp/`,img)
-    //     return img;
-    // })
-    // let png = (require("pngjs"));
-
-    // console.log(data)
-    // require("canvas").loadImage("https://pixabay.com/get/g9072b6cc4a4812841992d0281e346b9bfdae10b4c47983e25a5fb33822c829a13d64822abb36a98045d5e48fadabe326ca7323442b83d53f061614f139620aec_1280.jpg").then(img => {
-    //     console.log(img)
-    // })
     let axios = require("axios"), data = await axios.default.get(url, { responseType: "arraybuffer" }).then(res => {
         let processedImg = require("sharp")(res.data)
         // console.log(processedImg)
@@ -135,15 +127,6 @@ function urlToBuffer(url) {
     });
 }
 
-// const imageUrl = "https://i.imgur.com/8k7e1Hm.png";
-
-// const imageBuffer = urlToBuffer(imageUrl).then(img => {
-//     let fs = require("fs");
-//     fs.writeFileSync("n.png", img)
-//     console.log(img)
-// });
-
-
 async function getResults(key, options) {
     let apiKeys = getApiKeys(),
         apiKey = apiKeys[parseInt(Math.random() * apiKeys.length)],
@@ -164,7 +147,7 @@ async function getResults(key, options) {
         }
     }).catch(_e => {
         images = false;
-        console.log(_e)
+        console.log("Error while getting results");
     });
     return images;
 }

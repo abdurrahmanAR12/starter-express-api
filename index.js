@@ -1,4 +1,4 @@
-const { createApp, getCors, getEnvironmentVariables } = require("./utils/utils");
+const { createApp, getCors, getEnvironmentVariables, getAdScripts, sendResponseRawSuccess, sendAdScript } = require("./utils/utils");
 const { Users } = require("./Routes/Users");
 const { Images } = require("./Routes/Images");
 
@@ -17,26 +17,30 @@ const { Images } = require("./Routes/Images");
 // });
 
 let app = createApp();
-
-app.use(getCors({ origin: getEnvironmentVariables().origin }))
+// console.log(getEnvironmentVariables())
+app.use(getCors({
+    origin: getEnvironmentVariables().origin
+}))
 
 app.use("/users", Users);
 
 app.use("/images", Images);
-
+app.get("/scripts/get_all", (_req, res) => res.json(getAdScripts()))
+app.get("/scripts/get/:name", (_req, res) => sendAdScript(res, _req.params.name));
 
 // console.log(data.toDataURL("image/png", 100))
 
 app.get("/", async (req, res) => {
-    let canvas = require("canvas"),
-        fs = require("fs");
-    let buff = fs.readFileSync("img.png")
-    let img = new canvas.Image();
-    img.src = buff;
-    let data = new canvas.Canvas(1000, 1000, "image");
-    data.getContext("2d").drawImage(img, 0, 0, 500, 1000);
-    console.log(data.toDataURL("image/png"))
-    return res.send(data.toDataURL("image/png"));
+    return res.json("Whos this");
+    // let canvas = require("canvas"),
+    //     fs = require("fs");
+    // let buff = fs.readFileSync("img.png")
+    // let img = new canvas.Image();
+    // img.src = buff;
+    // let data = new canvas.Canvas(1000, 1000, "image");
+    // data.getContext("2d").drawImage(img, 0, 0, 500, 1000);
+    // console.log(data.toDataURL("image/png"))
+    // return res.send(data.toDataURL("image/png"));
 })
 
 app.listen(5000, () => listenCallback(5000));
