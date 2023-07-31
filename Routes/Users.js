@@ -26,7 +26,7 @@ router.post("/new", [
     if (!isValidAge(req.body.Age)) return sendRespnonseJson400(res, "Please provide your Age, it is must be valid");
 
     let al = User.get({ Email: encodeUtf8(req.body.Email) })[0];
-    if (al) return sendRespnonseJsonSucess(res, "Sorry, the user has taken");
+    if (al) return sendRespnonseJson400(res, "Sorry, the user has taken");
 
     let objCreate = { Name: encodeUtf8(req.body.Name), Gender: req.body.Gender, Age: req.body.age, Email: encodeUtf8(req.body.Email), Password: createHashSalted(req.body.Password) };
     let newUser = await (User.create(objCreate)).save().then(res => res).catch(rej_ => false);
