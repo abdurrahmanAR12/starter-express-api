@@ -18,7 +18,7 @@ router.post("/new", [
 ], async (req, res) => {
     let errors = validationResult(req);
     if (!errors.isEmpty())
-        return sendRespnonseJsonSucess(res, errors.array()[0].msg);
+        return sendRespnonseJson400(res, errors.array()[0].msg);
     if (req.body.Password !== req.body.CPassword) return sendRespnonseJson400(res, "Passwords must match");
 
     if (!isGender(req.body.Gender)) return sendRespnonseJson400(res, "Please select your Gender");
