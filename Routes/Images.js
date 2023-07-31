@@ -98,8 +98,8 @@ router.get("/category/:category&:page", param("page", "Page must starts from 1 a
 });
 
 async function getImage(url) {
-    if (!URL.canParse(url))
-        return false;
+    // if (!URL.canParse(url))
+    //     return false;
     let axios = require("axios"), data = await axios.default.get(url, { responseType: "arraybuffer" }).then(res => {
         let processedImg = require("sharp")(res.data)
         // console.log(processedImg)
