@@ -53,14 +53,14 @@ router.post("/search", FetchUserIfExists, [
 
 router.get("/get/:id", param("id", "id must be valid").isJWT(), async (req, res) => {
     let url = (verifyPayload(req.params.id, getEnvironmentVariables().jwt)).toString();
-    let image = await getImage(url),
-        u = new URL(url),
-        src = `./temporary/${u.pathname.split("/")[2]}.png`,
-        fs = require("fs");
-    fs.writeFileSync(resolvePath(src), image);
-    return res.contentType("image/png").sendFile(resolvePath(src), e => {
-        fs.unlinkSync(src);
-    });
+    let image = await getImage(url);
+        // u = new URL(url);
+        // src = `./temporary/${u.pathname.split("/")[2]}.png`,
+        // fs = require("fs");
+    // fs.writeFileSync(resolvePath(src), image);
+    return res.contentType("image/png").send(image);
+        // resolvePath(src), e => {
+        // fs.unlinkSync(src);
 });
 
 router.get("/categories", (req, res) => {
