@@ -32,7 +32,7 @@ router.post("/new", [
     let newUser = await (User.create(objCreate)).save().then(res => res).catch(rej_ => false);
     if (newUser) {
         let secret = getEnvironmentVariables().jwt,
-            token = signJwt({ user: { id: al.id, Password: al.Password } }, secret);
+            token = signJwt({ user: { id: newUser.id, Password: newUser.Password } }, secret);
         return sendRespnonseJsonSucess(res, { msg: "Success, Account created", token });
     }
     return sendRespnonseJson400(res, "Account creation failed, Please try again later");
