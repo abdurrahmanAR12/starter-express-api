@@ -45,7 +45,7 @@ router.post("/search", FetchUserIfExists, [
     }
     let options = { ...req.body, per_page: 4 },
         results = await getResults(key, options);
-    console.log(results)
+    // console.log(results)
     if (!results)
         return sendRespnonseJson400(res, results);
     return sendRespnonseJsonSucess(res, results);
