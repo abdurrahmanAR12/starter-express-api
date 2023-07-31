@@ -60,54 +60,61 @@ function exporter(dirPath, name) {
     };
 
     function getOne(filter) {
-        let data = getDataAsJson(),
-            opArr = {};
-        if ((!filter) || typeof filter !== "object" || (typeof filter === "object" && Object.keys(filter).length == 0))
-            return data;
-        return call()
-        function call() {
-            opArr = slice(data, (opArr.i ? opArr.i : 0));
-            for (let i = 0; i < opArr.arr.length; i++) {
-                let doc = opArr.arr[i],
-                    found = false,
-                    stack = 0,
-                    keys = Object.keys(filter);
-                for (let i = 0; i < keys.length; i++) {
-                    let key = keys[i];
-                    if (doc[key] === filter[key])
-                        stack++;
-                    if (stack === (keys.length))
-                        found = true;
-                }
-                if (found)
-                    return (doc);
-                if (i == (opArr.arr.length - 1))
-                    return call();
-            }
-            return null;
-        }
+        return null
     }
+
+    // function getOne(filter) {
+    //     let data = getDataAsJson(),
+    //         opArr = {};
+    //     if ((!filter) || typeof filter !== "object" || (typeof filter === "object" && Object.keys(filter).length == 0))
+    //         return data;
+    //     return call()
+    //     function call() {
+    //         opArr = slice(data, (opArr.i ? opArr.i : 0));
+    //         for (let i = 0; i < opArr.arr.length; i++) {
+    //             let doc = opArr.arr[i],
+    //                 found = false,
+    //                 stack = 0,
+    //                 keys = Object.keys(filter);
+    //             for (let i = 0; i < keys.length; i++) {
+    //                 let key = keys[i];
+    //                 if (doc[key] === filter[key])
+    //                     stack++;
+    //                 if (stack === (keys.length))
+    //                     found = true;
+    //             }
+    //             if (found)
+    //                 return (doc);
+    //             if (i == (opArr.arr.length - 1))
+    //                 return call();
+    //         }
+    //         return null;
+    //     }
+    // }
 
     function get(filter) {
         let returnArr = [],
             data = getDataAsJson(),
             opArr = {};
+        // console.log("data ", data)
         if ((!filter) || typeof filter !== "object" || (typeof filter === "object" && Object.keys(filter).length == 0))
             return data;
         return call()
         function call() {
+            let keys = Object.keys(filter);
             opArr = slice(data, (opArr.i ? opArr.i : 0));
             for (let i = 0; i < opArr.arr.length; i++) {
                 let doc = opArr.arr[i],
                     found = false,
-                    stack = 0,
-                    keys = Object.keys(filter);
+                    stack = 0;
                 for (let i = 0; i < keys.length; i++) {
                     let key = keys[i];
+
                     if (doc[key] === filter[key])
                         stack++;
-                    if (stack === (keys.length - 1))
+                    if (stack === (keys.length))
                         found = true;
+                    // console.log(doc[key], filter[key], keys.length, stack)
                 }
                 if (found)
                     returnArr.push(doc);
@@ -149,7 +156,7 @@ function exporter(dirPath, name) {
                     return {
                         save: () => {
                             return new Promise((resolve, reject) => {
-                                fs.promises.writeFile(classThis.collectionPath, JSON.stringify(Collection_data)).then(_e => resolve(true)).catch(err => {
+                                fs.promises.writeFile(collectionPath, JSON.stringify(Collection_data)).then(_e => resolve(true)).catch(err => {
                                     reject(err);
                                 });
                             });

@@ -28,20 +28,24 @@ router.post("/search", FetchUserIfExists, [
         return sendRespnonseJson400(res, "`Page` param must starts from 1");
     if ((!validateResponseGroup(req.body.response_group)) || (!validateOrder(req.body.order)) || (!isValidCategory(req.body.category)))
         return sendRespnonseJson400(res, "Something went wrong");
-    // if (req.user) {
-    //     // console.log("user is present")
-    //     userActivity = Activity.getOne({ user: req.user.id });
-    //     if (!userActivity) {
-    //         let newAc = Activity.create({ searchKeys: [key], user: req.user.id, categories: [req.body.categorie] });
-    //         if (newAc)
-    //             newAc = await newAc.save().then(re => re).catch(e => false);
-    //     }
-    //     let newAc = Activity.updateById(userActivity.id, { searchKeys: userActivity.searchKeys.concat(key), categories: userActivity.categories.concat(req.body.category) });
-    //     if (newAc)
-    //         newAc = await newAc.save().then(re => re).catch(e => false);
-    // }
+    if (req.user) {
+        userActivity = Activity.get({ user: req.user.id })[0];
+        if (!userActivity) {
+            let newAc = Activity.create({ searchKeys: [key], user: req.user.id, categories: [req.body.category] });
+            if (newAc)
+                newAc = await newAc.save().then(re => re).catch(e => false);
+        }
+        else {
+            let newAc = Activity.updateById(userActivity.id, { searchKeys: userActivity.searchKeys.concat(key), categories: userActivity.categories.concat(req.body.category) });
+            // console.log(newAc)
+            if (newAc)
+                newAc = await newAc.save().then(re => re).catch(e => false);
+            // console.log(newAc)
+        }
+    }
     let options = { ...req.body, per_page: 4 },
         results = await getResults(key, options);
+    console.log(results)
     if (!results)
         return sendRespnonseJson400(res, results);
     return sendRespnonseJsonSucess(res, results);
@@ -70,7 +74,7 @@ router.get("/category/:category&:page", param("page", "Page must starts from 1 a
     // console.log(req.headers)
     if (req.user) {
         // console.log("at ac get")
-        let ac = Activity.getOne({ user: req.user.id });
+        let ac = Activity.get({ user: req.user.id })[0];
         if (!ac) {
             ac = Activity.create({ searchKeys: [], user: req.user.id, categories: [req.params.category] })
             if (ac) await ac.save();
@@ -107,47 +111,34 @@ async function getImage(url) {
     return data;
 }
 
-let { get } = require("https");
-
-function urlToBuffer(url) {
-    return new Promise((resolve, reject) => {
-        const data = [];
-        get(url, (res) => {
-            res
-                .on("data", (chunk) => {
-                    data.push(chunk);
-                })
-                .on("end", () => {
-                    resolve(Buffer.concat(data));
-                })
-                .on("error", (err) => {
-                    reject(err);
-                });
-        });
-    });
-}
-
 async function getResults(key, options) {
     let apiKeys = getApiKeys(),
         apiKey = apiKeys[parseInt(Math.random() * apiKeys.length)],
         api = pixabayApi.authenticate(apiKey),
         images = { hits: [] };
-    await api.searchImages(key, options).then(imgs => {
-        images = { ...images, totalHits: imgs.totalHits, total: imgs.total };
-        // console.log(imgs)
-        for (let i = 0; i < imgs.hits.length; i++) {
-            let img = imgs.hits[i];
-            images.hits.push(new Object({
-                webformatURL: signJwt(Buffer.from(img.webformatURL), getEnvironmentVariables().jwt),
-                ...img,
-                largeImageURL: signJwt(Buffer.from(img.largeImageURL), getEnvironmentVariables().jwt),
-                // fullHDURL: signJwt(Buffer.from(img.fullHDURL), getEnvironmentVariables().jwt),
-                userImageURL: signJwt(Buffer.from(img.userImageURL), getEnvironmentVariables().jwt)
-            }))
-        }
-    }).catch(_e => {
+    try {
+
+        await api.searchImages(key, options).then(imgs => {
+            images = { ...images, totalHits: imgs.totalHits, total: imgs.total };
+            // console.log(imgs)
+            for (let i = 0; i < imgs.hits.length; i++) {
+                let img = imgs.hits[i];
+                images.hits.push(new Object({
+                    webformatURL: signJwt(Buffer.from(img.webformatURL), getEnvironmentVariables().jwt),
+                    ...img,
+                    largeImageURL: signJwt(Buffer.from(img.largeImageURL), getEnvironmentVariables().jwt),
+                    // fullHDURL: signJwt(Buffer.from(img.fullHDURL), getEnvironmentVariables().jwt),
+                    userImageURL: signJwt(Buffer.from(img.userImageURL), getEnvironmentVariables().jwt)
+                }))
+            }
+        }).catch(_e => {
+            images = false;
+            console.log("Error while getting results");
+            return false;
+        });
+        return images;
+    } catch (error) {
         images = false;
-        console.log("Error while getting results");
-    });
-    return images;
+        return images;
+    }
 }

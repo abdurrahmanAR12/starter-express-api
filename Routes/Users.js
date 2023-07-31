@@ -25,7 +25,7 @@ router.post("/new", [
 
     if (!isValidAge(req.body.Age)) return sendRespnonseJson400(res, "Please provide your Age, it is must be valid");
 
-    let al = User.getOne({ Email: encodeUtf8(req.body.Email) });
+    let al = User.get({ Email: encodeUtf8(req.body.Email) })[0];
     if (al) return sendRespnonseJsonSucess(res, "Sorry, the user has taken");
 
     let objCreate = { Name: encodeUtf8(req.body.Name), Gender: req.body.Gender, Age: req.body.age, Email: encodeUtf8(req.body.Email), Password: createHashSalted(req.body.Password) };
@@ -46,7 +46,7 @@ router.post("/login", [
     let errors = validationResult(req);
     if (!errors.isEmpty())
         return sendRespnonseJson400(res, errors.array()[0].msg);
-    let al = User.getOne({ Email: encodeUtf8(req.body.Email) });
+    let al = User.get({ Email: encodeUtf8(req.body.Email) })[0];
     if (!al)
         return sendRespnonseJson400(res, "Sorry, Email or password is not valid");
     let comparison = comparePassword(req.body.Password, al.Password);
